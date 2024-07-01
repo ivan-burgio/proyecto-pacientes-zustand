@@ -1,20 +1,43 @@
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "react-toastify";
 import Error from "./Error";
 import type { DraftPatient } from "../types";
 import { usePatientStore } from "../store/store";
 
 export default function PatientForm() {
-    const { addPatient } = usePatientStore();
+    const { addPatient, activeId, patients, updatePatient } = usePatientStore();
 
     const {
         register,
         handleSubmit,
+        setValue,
         formState: { errors },
         reset,
     } = useForm<DraftPatient>();
 
+    useEffect(() => {
+        if (activeId) {
+            const activePatient = patients.filter(
+                (patient) => patient.id === activeId
+            )[0];
+            setValue("name", activePatient.name);
+            setValue("caretaker", activePatient.caretaker);
+            setValue("date", activePatient.date);
+            setValue("email", activePatient.email);
+            setValue("symptoms", activePatient.symptoms);
+        }
+    }, [activeId]);
+
     const registerPatient = (data: DraftPatient) => {
-        addPatient(data);
+        if (activeId) {
+            updatePatient(data);
+            toast.success('Paciente actualizado');
+        } else {
+            addPatient(data);
+            toast.success('Paciente registrado');
+        }
+
         reset();
     };
 
@@ -50,9 +73,7 @@ export default function PatientForm() {
                             required: "El nombre del paciente es obligatorio",
                         })}
                     />
-                    {errors.name && (
-                        <Error>{errors.name?.message}</Error>
-                    )}
+                    {errors.name && <Error>{errors.name?.message}</Error>}
                 </div>
 
                 <div className="mb-5">
@@ -96,9 +117,7 @@ export default function PatientForm() {
                             },
                         })}
                     />
-                    {errors.email && (
-                        <Error>{errors.email?.message}</Error>
-                    )}
+                    {errors.email && <Error>{errors.email?.message}</Error>}
                 </div>
 
                 <div className="mb-5">
@@ -116,9 +135,7 @@ export default function PatientForm() {
                             required: "La fecha de alta es obligatoria",
                         })}
                     />
-                    {errors.date && (
-                        <Error>{errors.date?.message}</Error>
-                    )}
+                    {errors.date && <Error>{errors.date?.message}</Error>}
                 </div>
 
                 <div className="mb-5">
